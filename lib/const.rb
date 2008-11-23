@@ -2,13 +2,12 @@ class Object
   alias_method :orig_method_missing, :method_missing
 
   def method_missing(m, *a, &b)
-    begin
-      klass = (self.is_a?(Module) ? self : self.class).const_get(m)
+    klass = begin
+      (self.is_a?(Module) ? self : self.class).const_get(m)
     rescue NameError
-    else
-      return klass.send(:parens, *a, &b)  if klass.respond_to? :parens
     end
-      
+
+    return klass.send(:parens, *a, &b)  if klass.respond_to? :parens
     orig_method_missing m, *a, &b
   end
 end
