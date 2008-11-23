@@ -1,6 +1,3 @@
-# TODO: figure out Module.nesting shit for this... write some tests
-#       try eval("Module.nesting", binding) or osme shti
-
 class Object
   alias_method :orig_method_missing, :method_missing
 
