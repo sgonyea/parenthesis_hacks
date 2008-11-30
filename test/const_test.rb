@@ -73,6 +73,36 @@ class ConstTest < Test::Unit::TestCase
     Object.send :remove_const, :X
   end
 
+  def test_subclassing_with_method_scenario
+    assert_raises(NoMethodError) do
+      eval <<-EOS
+        class ::X
+          class G
+            def self.parens(*a); p :subclassed!; Class.new(self); end
+          end
+          class Y
+            class Z < G(42)
+            end
+          end
+        end
+      EOS
+    end
+
+    assert_nothing_raised do
+      eval <<-EOS
+        class ::X
+          class G
+            def self.parens(*a); p :subclassed!; Class.new(self); end
+          end
+          class Z < G(42)
+          end
+        end
+      EOS
+    end
+  ensure
+    Object.send :remove_const, :X
+  end
+
   # This fails because 1) we resolve in a different scope (method_missing) and
   # 2) const_get doesnt use lexical scope to resolve constants
   def test_constant_lookup_through_lexical_scope_should_FAIL
