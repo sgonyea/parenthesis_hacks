@@ -78,9 +78,10 @@ class ConstTest < Test::Unit::TestCase
       eval <<-EOS
         class ::X
           class G
-            def self.parens(*a); p :subclassed!; Class.new(self); end
+            def self.parens(*a); Class.new(self); end
           end
           class Y
+            # G is not a constant of Y and is not a constnat of any of Y's ancestors
             class Z < G(42)
             end
           end
@@ -92,7 +93,7 @@ class ConstTest < Test::Unit::TestCase
       eval <<-EOS
         class ::X
           class G
-            def self.parens(*a); p :subclassed!; Class.new(self); end
+            def self.parens(*a); Class.new(self); end
           end
           class Z < G(42)
           end
@@ -121,5 +122,35 @@ class ConstTest < Test::Unit::TestCase
         end
       EOS
     end
+  end
+
+  def test_default_initialize_args
+    eval <<-EOS
+      class ::X
+        attr_reader :x, :y, :z
+        def initialize(x, y, z)
+          @x, @y, @z = x, y, z
+        end
+        def self.parens(*args)
+          Class.new(self).class_eval do
+            define_method :initialize do
+              super(*args)
+            end
+          
+            self
+          end
+        end
+      end
+
+      class ::Y < X(1, 2, 3)
+      end
+    EOS
+
+    assert_equal 1, Y.new.x
+    assert_equal 2, Y.new.y
+    assert_equal 3, Y.new.z
+  ensure
+    Object.send :remove_const, :X
+    Object.send :remove_const, :Y
   end
 end
